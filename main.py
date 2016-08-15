@@ -16,12 +16,10 @@ class Keys:
 
 
 
-
-
 def texts(text, screen):
-   font = pygame.font.Font(None,30)
-   scoretext = font.render(str(text), 0,(255,255,255))
-   screen.blit(scoretext, (10, 10))
+    font = pygame.font.Font(None,30)
+    scoretext = font.render(str(text), 0,(255,255,255))
+    screen.blit(scoretext, (10, 10))
 
 
 
@@ -93,7 +91,6 @@ def run():
                 elif event.key== K_z:
                     newStatus = newStatus & ~Keys.SPEED_DOWN
                 if event.key == K_ESCAPE:
-                    vehicle.sendKeysStatus(str(keysStatus)+"\n")
                     return
 
 

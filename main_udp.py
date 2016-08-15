@@ -6,7 +6,7 @@ import sys
 from pygame.locals import *
 
 
-class Keys:
+class KeysStatus:
         UP          = 0b00000001
         DOWN        = 0b00000010
         LEFT        = 0b00000100
@@ -16,12 +16,13 @@ class Keys:
         SPEED_UP    = 0b01000000
         SPEED_DOWN  = 0b10000000
 
+UDP_MESSAGE_INTERVAL_IN_SEC = 0.1
 
 
-def sendUDP(socket, to_addr, msg):
+def sendUDP(to_socket, to_address, msg):
     # Send data
     print >> sys.stderr, 'sending "%s"' % msg
-    sent = socket.sendto(msg, to_addr)
+    sent = to_socket.sendto(msg, to_address)
 
 
 def isExpired(start_time):
@@ -31,16 +32,16 @@ def isExpired(start_time):
     :return True if timer has expired:
     :type return: bool
     """
-    if (time.clock()-start_time) > 0.1:
+    if (time.clock() - start_time) > UDP_MESSAGE_INTERVAL_IN_SEC:
         return True
 
     return False
 
 
 def texts(text, screen):
-   font = pygame.font.Font(None,30)
-   scoretext = font.render(str(text), 0,(255,255,255))
-   screen.blit(scoretext, (10, 10))
+    font = pygame.font.Font(None,30)
+    score_text = font.render(str(text), 0,(255,255,255))
+    screen.blit(score_text, (10, 10))
 
 
 
@@ -51,28 +52,26 @@ def run():
     width, height = 300, 200
     screen = pygame.display.set_mode((width, height))
 
-    keysStatus = 0 # tells us which keys are being pressed. It is a number resulting from adding the values from Keys class
-    newStatus = 0
+    key_status = 0  # tells us which keys are being pressed.
+    new_key_status = 0
 
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     server_address = ('192.168.0.104', 10000)
-
+    start = time.clock()
     # 4 - keep looping through
     while 1:
         # # 5 - clear the screen before drawing it again
         screen.fill(0)
 
-        start = time.time()
-
         # Send new commands to vehicle
-        if newStatus != keysStatus or isExpired(start):
-            start = time.time()
-            keysStatus = newStatus
-            sendUDP(sock, server_address, str(keysStatus))
-            print"event"
+        if new_key_status != key_status or isExpired(start):
+            key_status = new_key_status
+            if key_status: # do not send empty KeysStatus
+                sendUDP(sock, server_address, str(key_status))
+            start = time.clock()
 
-        texts("{0:b}".format(keysStatus), screen)
+        texts("{0:b}".format(key_status), screen)
 
         # # 7 - update the screen
         pygame.display.flip()
@@ -81,41 +80,40 @@ def run():
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key==K_UP:
-                    newStatus = newStatus | Keys.UP
+                    new_key_status = new_key_status | KeysStatus.UP
                 elif event.key==K_DOWN:
-                    newStatus = newStatus | Keys.DOWN
+                    new_key_status = new_key_status | KeysStatus.DOWN
                 elif event.key==K_LEFT:
-                    newStatus = newStatus | Keys.LEFT
+                    new_key_status = new_key_status | KeysStatus.LEFT
                 elif event.key==K_RIGHT:
-                    newStatus = newStatus | Keys.RIGHT
+                    new_key_status = new_key_status | KeysStatus.RIGHT
                 elif event.key==K_SPACE:
-                    newStatus = newStatus | Keys.BRAKE
+                    new_key_status = new_key_status | KeysStatus.BRAKE
                 elif event.key== K_ESCAPE:
-                    newStatus = newStatus | Keys.QUIT
+                    new_key_status = new_key_status | KeysStatus.QUIT
                 elif event.key== K_a:
-                    newStatus = newStatus | Keys.SPEED_UP
+                    new_key_status = new_key_status | KeysStatus.SPEED_UP
                 elif event.key== K_z:
-                    newStatus = newStatus | Keys.SPEED_DOWN
+                    new_key_status = new_key_status | KeysStatus.SPEED_DOWN
 
             elif event.type == pygame.KEYUP:
                 if event.key==K_UP:
-                    newStatus = newStatus & ~Keys.UP
+                    new_key_status = new_key_status & ~KeysStatus.UP
                 elif event.key==K_DOWN:
-                    newStatus = newStatus & ~Keys.DOWN
+                    new_key_status = new_key_status & ~KeysStatus.DOWN
                 elif event.key==K_LEFT:
-                    newStatus = newStatus & ~Keys.LEFT
+                    new_key_status = new_key_status & ~KeysStatus.LEFT
                 elif event.key==K_RIGHT:
-                    newStatus = newStatus & ~Keys.RIGHT
+                    new_key_status = new_key_status & ~KeysStatus.RIGHT
                 elif event.key==K_SPACE:
-                    newStatus = newStatus & ~ Keys.BRAKE
+                    new_key_status = new_key_status & ~ KeysStatus.BRAKE
                 elif event.key== K_ESCAPE:
-                    newStatus = newStatus & ~Keys.QUIT
+                    new_key_status = new_key_status & ~KeysStatus.QUIT
                 elif event.key== K_a:
-                    newStatus = newStatus & ~Keys.SPEED_UP
+                    new_key_status = new_key_status & ~KeysStatus.SPEED_UP
                 elif event.key== K_z:
-                    newStatus = newStatus & ~Keys.SPEED_DOWN
+                    new_key_status = new_key_status & ~KeysStatus.SPEED_DOWN
                 if event.key == K_ESCAPE:
-                    vehicle.sendKeysStatus(str(keysStatus)+"\n")
                     return
 
 
