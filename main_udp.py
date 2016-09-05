@@ -57,7 +57,7 @@ def run():
 
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    server_address = ('192.168.0.104', 10000)
+    server_address = ('192.168.1.102', 10000)
     start = time.clock()
     # 4 - keep looping through
     while 1:
