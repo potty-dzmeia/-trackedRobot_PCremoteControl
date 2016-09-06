@@ -4,17 +4,8 @@ import time
 import socket
 import sys
 from pygame.locals import *
+from keys_status import KeysStatus
 
-
-class KeysStatus:
-        UP          = 0b00000001
-        DOWN        = 0b00000010
-        LEFT        = 0b00000100
-        RIGHT       = 0b00001000
-        BRAKE       = 0b00010000
-        QUIT        = 0b00100000
-        SPEED_UP    = 0b01000000
-        SPEED_DOWN  = 0b10000000
 
 UDP_MESSAGE_INTERVAL_IN_SEC = 0.1
 
@@ -57,14 +48,14 @@ def run():
 
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    server_address = ('192.168.1.102', 10000)
+    server_address = ('192.168.0.104', 10000)
     start = time.clock()
     # 4 - keep looping through
     while 1:
         # # 5 - clear the screen before drawing it again
         screen.fill(0)
 
-        # Send new commands to vehicle
+        # Send: new commands and also old commands every UDP_MESSAGE_INTERVAL_IN_SEC
         if new_key_status != key_status or isExpired(start):
             key_status = new_key_status
             if key_status: # do not send empty KeysStatus
